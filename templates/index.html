@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collaborative Courtroom Navigator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div class="w-1/4 bg-gray-800 text-white p-4 flex flex-col">
+            <h2 class="text-xl font-bold mb-4">Room Info</h2>
+            <div class="mb-4">
+                <strong>Room:</strong> <span id="room-name">N/A</span>
+            </div>
+            <div class="mb-4">
+                <strong>My Name:</strong> <span id="user-name">N/A</span>
+            </div>
+            
+            <h3 class="text-lg font-semibold mb-2">Participants</h3>
+            <ul id="participants-list" class="space-y-2 mb-4">
+                <!-- Participants will be dynamically added here -->
+            </ul>
+            
+            <h3 class="text-lg font-semibold mb-2">Documents</h3>
+            <ul id="documents-list" class="space-y-2 mb-4">
+                <!-- Documents will be dynamically added here -->
+            </ul>
+             <label for="file-upload" class="cursor-pointer mt-auto bg-blue-600 text-white text-center py-2 px-4 rounded hover:bg-blue-700 transition">
+                Upload PDF
+            </label>
+            <input type="file" id="file-upload" class="hidden" accept=".pdf">
+        </div>
+
+        <!-- Main Content -->
+        <div class="w-3/4 p-8 flex flex-col">
+            <header class="text-center mb-4">
+                <h1 class="text-3xl font-bold text-gray-900">Collaborative Navigator</h1>
+                <p id="status" class="mt-1 text-md text-gray-600 h-6">Please join a room and upload a document.</p>
+            </header>
+
+            <div id="viewer-container" class="flex-grow bg-white p-6 rounded-lg shadow-md hidden flex-col">
+                 <div class="flex justify-center items-center gap-4 mb-4">
+                    <button id="prev-page-btn" class="p-2 rounded-full hover:bg-gray-200 disabled:opacity-50 transition">&lt; Prev</button>
+                    <span id="page-indicator" class="font-medium">Page 1 / 1</span>
+                    <button id="next-page-btn" class="p-2 rounded-full hover:bg-gray-200 disabled:opacity-50 transition">Next &gt;</button>
+                </div>
+                <div id="pdf-viewer" class="relative mx-auto bg-gray-200 w-full flex-grow" style="max-width: 800px;">
+                    <img id="page-image" src="" alt="PDF Page" class="w-full h-auto">
+                    <canvas id="highlight-canvas" class="absolute top-0 left-0 w-full h-full"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/main.js"></script>
+</body>
+</html>
