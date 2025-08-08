@@ -3,7 +3,7 @@ import { io, Socket } from 'socket.io-client';
 import useStore from '../store/useStore';
 import { RoomState, Highlight } from '../store/useStore';
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://127.0.0.1:5000';
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://127.0.0.1:8080';
 const MAX_RECONNECTION_ATTEMPTS = 5;
 const RECONNECTION_DELAY = 1000;
 

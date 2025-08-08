@@ -5,11 +5,12 @@ from app import create_app, socketio
 config_name = os.getenv('FLASK_CONFIG') or 'default'
 app = create_app(config_name)
 
+# For Heroku deployment
 if __name__ == '__main__':
     # Get configuration
     config = app.config
     host = config.get('HOST', '127.0.0.1')
-    port = config.get('PORT', 5000)
+    port = int(os.environ.get('PORT', config.get('PORT', 8080)))
     
     print(f"Starting server on {host}:{port}")
     socketio.run(app, host=host, port=port)

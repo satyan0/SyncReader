@@ -14,11 +14,11 @@ class Config:
     UPLOAD_FOLDER = os.path.join(BASE_DIR, '..', 'documents')
     
     # Server configuration
-    HOST = os.environ.get('HOST', '127.0.0.1')
-    PORT = int(os.environ.get('PORT', 5000))
+    HOST = os.environ.get('HOST', '0.0.0.0')  # Allow external connections
+    PORT = int(os.environ.get('PORT', 8080))
     
     # CORS configuration
-    CORS_ORIGINS = os.environ.get('CORS_ORIGINS', 'http://localhost:5173,http://127.0.0.1:5173').split(',')
+    CORS_ORIGINS = os.environ.get('CORS_ORIGINS', 'http://localhost:5173,http://127.0.0.1:5173,https://*.herokuapp.com').split(',')
     
 class DevelopmentConfig(Config):
     """Development configuration."""

@@ -35,7 +35,7 @@ const DocumentViewer: React.FC = () => {
   const docId = currentUser?.current_doc_id;
   const currentDocument = documents?.find(d => d.id === docId);
 
-  const pdfUrl = currentDocument ? `${import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:5000'}/document/${currentDocument.id}` : '';
+  const pdfUrl = currentDocument ? `${import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:8080'}/document/${currentDocument.id}` : '';
 
   const onDocumentLoadSuccess = useCallback(({ numPages }: { numPages: number }) => {
     setNumPages(numPages);
