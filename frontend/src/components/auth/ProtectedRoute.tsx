@@ -12,7 +12,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const currentUser = useStore((state) => state.currentUser);
   const room = useStore((state) => state.room);
   const [isInitializing, setIsInitializing] = useState(true);
-  const [sessionRecovered, setSessionRecovered] = useState(false);
+  const [, setSessionRecovered] = useState(false);
 
   useEffect(() => {
     const initializeSession = async () => {

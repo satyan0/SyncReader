@@ -216,9 +216,9 @@ const DocumentViewer: React.FC = () => {
     }
   }, [numPages, currentPage]);
 
-  const handlePageChange = (newPage: number) => {
-    setCurrentPage(newPage);
-  };
+  // const handlePageChange = (newPage: number) => {
+  //   setCurrentPage(newPage);
+  // };
 
   const handleTableOfContentsClick = (pageNumber: number) => {
     setCurrentPage(pageNumber);

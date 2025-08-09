@@ -17,7 +17,7 @@ interface ActivityItem {
 }
 
 const ActivityPanel: React.FC = () => {
-  const { highlights, room, currentUser } = useStore();
+  const { highlights, room } = useStore();
   const [isExpanded, setIsExpanded] = useState(true);
 
   // Get all highlights from all documents and sort by timestamp
