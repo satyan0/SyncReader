@@ -15,7 +15,8 @@ class Config:
     
     # Server configuration
     HOST = os.environ.get('HOST', '0.0.0.0')  # Allow external connections
-    PORT = int(os.environ.get('PORT', 8080))
+    # Use 8080 as default, only use PORT env var for production deployment
+    PORT = int(os.environ.get('PORT') if os.environ.get('FLASK_ENV') == 'production' else 8080)
     
     # CORS configuration
     CORS_ORIGINS = os.environ.get('CORS_ORIGINS', 'http://localhost:5173,http://127.0.0.1:5173,https://*.herokuapp.com').split(',')
