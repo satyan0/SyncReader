@@ -8,8 +8,7 @@ import { Highlight } from '../../store/useStore';
 import { extractTableOfContents, searchInDocument, TableOfContentsItem } from '../../utils/pdfUtils';
 
 // Set up PDF.js worker
-// pdfjs.GlobalWorkerOptions.workerSrc = `/pdf.worker.js`;
-pdfjs.GlobalWorkerOptions.workerSrc = `frontend/public/pdf.worker.js`;
+pdfjs.GlobalWorkerOptions.workerSrc = import.meta.env.VITE_PDF_WORKER_SRC || '/pdf.worker.js';
 
 
 
