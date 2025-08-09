@@ -10,6 +10,7 @@ const RECONNECTION_DELAY = 1000;
 class SocketService {
   private socket: Socket;
   private reconnectionAttempts: number = 0;
+  private pendingDeletions: Array<{highlightId: string, documentId?: number}> = [];
 
   constructor() {
     this.socket = io(SOCKET_URL, {
@@ -44,6 +45,15 @@ class SocketService {
     this.socket.on('connect', () => {
       console.log('Socket connected successfully, SID:', this.socket.id);
       this.reconnectionAttempts = 0;
+      
+      // Process any pending deletions
+      if (this.pendingDeletions.length > 0) {
+        console.log(`Processing ${this.pendingDeletions.length} pending deletions`);
+        this.pendingDeletions.forEach(({ highlightId, documentId }) => {
+          this.socket.emit('remove_highlight', { highlightId, documentId });
+        });
+        this.pendingDeletions = [];
+      }
     });
 
     this.socket.on('connect_error', (error) => {
@@ -311,6 +321,22 @@ class SocketService {
         }
       });
     });
+  }
+
+  // Fast version that doesn't wait for server response - for optimistic UI updates
+  public removeHighlightFast(highlightId: string, documentId?: number): Promise<void> {
+    if (!this.socket.connected) {
+      console.warn('Socket not connected, queueing deletion for when connection is restored');
+      // Queue the deletion for when connection is restored
+      this.pendingDeletions.push({ highlightId, documentId });
+      return Promise.reject(new Error('Socket not connected'));
+    }
+
+    console.log('Emitting remove_highlight event (fast):', highlightId);
+    this.socket.emit('remove_highlight', { highlightId, documentId });
+    
+    // Return resolved promise immediately for optimistic updates
+    return Promise.resolve();
   }
 }
 

@@ -8,14 +8,15 @@ import { Highlight } from '../../store/useStore';
 import { extractTableOfContents, searchInDocument, TableOfContentsItem } from '../../utils/pdfUtils';
 
 // Set up PDF.js worker
-pdfjs.GlobalWorkerOptions.workerSrc = `/pdf.worker.js`;
+// pdfjs.GlobalWorkerOptions.workerSrc = `/pdf.worker.js`;
+pdfjs.GlobalWorkerOptions.workerSrc = `frontend/public/pdf.worker.js`;
 
 
 
 const DocumentViewer: React.FC = () => {
   const currentUser = useStore((state) => state.currentUser);
   const documents = useStore((state) => state.room?.documents);
-  const getHighlightsForDocument = useStore((state) => state.getHighlightsForDocument);
+  const highlights = useStore((state) => state.highlights);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [numPages, setNumPages] = useState<number>(0);
@@ -34,6 +35,14 @@ const DocumentViewer: React.FC = () => {
 
   const docId = currentUser?.current_doc_id;
   const currentDocument = documents?.find(d => d.id === docId);
+  
+  // Get highlights for current document (reactive to store changes)
+  const currentDocumentHighlights = docId ? highlights[docId] || [] : [];
+  
+  // Debug: log highlights count when it changes
+  useEffect(() => {
+    console.log('Current document highlights count:', currentDocumentHighlights.length);
+  }, [currentDocumentHighlights.length]);
 
   const pdfUrl = currentDocument ? `${import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:8080'}/document/${currentDocument.id}` : '';
 
@@ -364,14 +373,25 @@ const DocumentViewer: React.FC = () => {
     const borderColor = getUserHighlightColor(highlight.userId);
 
     const handleDeleteHighlight = () => {
+      console.log('Deleting highlight:', highlight.id, 'from document:', highlight.documentId);
+      
       // Remove from local store immediately for instant UI feedback
       useStore.getState().removeHighlight(highlight.documentId, highlight.id);
       
-      // Send delete request to backend via socket (async, no need to wait)
-      socketService.removeHighlight(highlight.id, highlight.documentId).catch((error: Error) => {
+      console.log('Highlight removed from store, remaining highlights:', useStore.getState().highlights[highlight.documentId]?.length || 0);
+      
+      // Send delete request to backend via socket (fire and forget for maximum speed)
+      socketService.removeHighlightFast(highlight.id, highlight.documentId).catch((error: Error) => {
         console.error('Failed to remove highlight from server:', error);
-        // Optionally re-add the highlight if server removal failed
-        // useStore.getState().addHighlight(highlight);
+        
+        if (error.message === 'Socket not connected') {
+          console.warn('Highlight deleted locally but not synced to server due to connection issue');
+          // Don't re-add the highlight in this case - let the user keep the optimistic update
+          // The highlight will be properly synced when connection is restored
+        } else {
+          // Re-add the highlight for other types of server errors
+          useStore.getState().addHighlight(highlight);
+        }
       });
     };
 
@@ -397,7 +417,7 @@ const DocumentViewer: React.FC = () => {
         {/* Delete button at top right corner */}
         <button
           onClick={handleDeleteHighlight}
-          className="absolute -top-2 -right-2 bg-red-500 text-white w-5 h-5 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-150 pointer-events-auto z-30 flex items-center justify-center hover:bg-red-600 hover:scale-110 active:scale-95"
+          className="absolute -top-2 -right-2 bg-red-500 text-white w-5 h-5 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-100 pointer-events-auto z-30 flex items-center justify-center hover:bg-red-600 hover:scale-110 active:scale-90 active:duration-75"
           title="Delete highlight"
         >
           <X className="w-3 h-3" />
@@ -427,7 +447,7 @@ const DocumentViewer: React.FC = () => {
         renderTextLayer={true}
         renderAnnotationLayer={false}
       />
-      {getHighlightsForDocument(docId!).map(highlight => renderHighlight(highlight, pageNumber))}
+      {currentDocumentHighlights.map(highlight => renderHighlight(highlight, pageNumber))}
     </div>
   );
 
