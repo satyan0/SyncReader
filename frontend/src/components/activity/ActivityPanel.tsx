@@ -136,12 +136,9 @@ const ActivityPanel: React.FC = () => {
                 <div
                   key={item.id}
                   onClick={() => handleActivityClick(item)}
-                  className="p-2 sm:p-3 bg-gray-50 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors border-l-4 border-transparent hover:border-blue-400"
+                  className={`p-2 sm:p-3 bg-gray-50 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors border-l-4 ${getUserHighlightColor(item.highlight.userId)}`}
                 >
-                  <div className="flex items-start space-x-3">
-                    {/* User color indicator */}
-                    <div className={`w-3 h-3 rounded-full mt-1 flex-shrink-0 ${getUserHighlightColor(item.highlight.userId)}`} />
-                    
+                  <div className="flex items-start">
                     <div className="flex-1 min-w-0">
                       {/* Header */}
                       <div className="flex items-center justify-between mb-1">
