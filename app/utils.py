@@ -4,7 +4,7 @@ from .models import Room
 def get_room_state(room_name):
     """Constructs the full state payload for a room from the database."""
     print(f"Getting room state for: {room_name}")
-    room = Room.query.filter_by(name=room_name).first()
+    room = Room.get_by_name(room_name)
     if not room:
         print(f"Room not found: {room_name}")
         return {
@@ -13,31 +13,35 @@ def get_room_state(room_name):
             'documents': []
         }
     
-    print(f"Found room: {room.name} with {len(room.users)} users and {len(room.documents)} documents")
+    # Get users and documents for this room
+    users_data = Room.get_users(room['_id'])
+    documents_data = Room.get_documents(room['_id'])
+    
+    print(f"Found room: {room['name']} with {len(users_data)} users and {len(documents_data)} documents")
     
     # Convert users to the expected format
     users = []
-    for user in room.users:
+    for user in users_data:
         user_data = {
-            'id': user.id,
-            'sid': user.sid,
-            'username': user.username,
-            'current_doc_id': user.current_doc_id,
-            'current_page': user.current_page,
-            'highlights': user.highlights or []
+            'id': str(user['_id']),
+            'sid': user['sid'],
+            'username': user['username'],
+            'current_doc_id': str(user['current_doc_id']) if user.get('current_doc_id') else None,
+            'current_page': user.get('current_page', 0),
+            'highlights': user.get('highlights', [])
         }
         users.append(user_data)
         print(f"User: {user_data}")
     
     # Convert documents to the expected format
     documents = []
-    for doc in room.documents:
+    for doc in documents_data:
         doc_data = {
-            'id': doc.id,
-            'name': doc.name,
-            'pages': doc.pages,
-            'room_id': doc.room_id,
-            'uploader_id': doc.uploader_id
+            'id': str(doc['_id']),
+            'name': doc['name'],
+            'pages': doc['pages'],
+            'room_id': str(doc['room_id']),
+            'uploader_id': str(doc['uploader_id']) if doc.get('uploader_id') else None
         }
         documents.append(doc_data)
         print(f"Document: {doc_data}")

@@ -20,7 +20,8 @@ const DocumentsPanel: React.FC = () => {
     document.getElementById('file-upload')?.click();
   };
   
-  const handleSetView = (docId: number) => {
+  const handleSetView = (docId: string) => {
+    console.log('Setting view for document:', docId);
     socketService.setView(docId, 0);
   };
 

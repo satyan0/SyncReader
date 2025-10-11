@@ -9,11 +9,11 @@ const ParticipantsPanel: React.FC = () => {
   const documents = useStore((state) => state.room?.documents);
   const currentUser = useStore((state) => state.currentUser);
   const roomName = useStore((state) => state.room?.name);
-  const [expandedUsers, setExpandedUsers] = useState<Set<number>>(new Set());
+  const [expandedUsers, setExpandedUsers] = useState<Set<string>>(new Set());
   const [isUploading, setIsUploading] = useState(false);
 
   // Function to get color based on user ID (same as in DocumentViewer)
-  const getUserHighlightColor = (userId: number) => {
+  const getUserHighlightColor = (userId: string) => {
     const colors = [
       'border-yellow-400',
       'border-blue-400', 
@@ -35,12 +35,12 @@ const ParticipantsPanel: React.FC = () => {
   };
 
   // Function to get documents uploaded by a specific user
-  const getDocumentsByUser = (userId: number) => {
+  const getDocumentsByUser = (userId: string) => {
     return documents?.filter(doc => doc.uploader_id === userId) || [];
   };
 
   // Function to toggle user expansion
-  const toggleUserExpansion = (userId: number) => {
+  const toggleUserExpansion = (userId: string) => {
     const newExpanded = new Set(expandedUsers);
     if (newExpanded.has(userId)) {
       newExpanded.delete(userId);
@@ -54,26 +54,34 @@ const ParticipantsPanel: React.FC = () => {
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     console.log('File selected:', file);
+    console.log('File details:', file ? { name: file.name, size: file.size, type: file.type } : 'No file');
     console.log('Room name:', roomName);
     console.log('Current user:', currentUser);
     
-    if (file && roomName) {
-      console.log('Attempting to upload file:', file.name);
-      setIsUploading(true);
-      try {
-        const result = await socketService.uploadFile(file, roomName);
-        console.log('Upload successful:', result);
-        // The room_update event will automatically update the UI
-      } catch (error) {
-        console.error('Upload failed:', error);
-        // You could add a toast notification here
-        alert(`Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      } finally {
-        setIsUploading(false);
-      }
-    } else {
-      console.error('Missing file or room name:', { file: !!file, roomName });
+    if (!file) {
+      console.error('No file selected');
       alert('Please select a PDF file to upload');
+      return;
+    }
+    
+    if (!roomName) {
+      console.error('No room name available');
+      alert('Room not found. Please try joining the room again.');
+      return;
+    }
+    
+    console.log('Attempting to upload file:', file.name, 'to room:', roomName);
+    setIsUploading(true);
+    try {
+      const result = await socketService.uploadFile(file, roomName);
+      console.log('Upload successful:', result);
+      // The room_update event will automatically update the UI
+    } catch (error) {
+      console.error('Upload failed:', error);
+      // You could add a toast notification here
+      alert(`Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsUploading(false);
     }
     
     // Clear the input so the same file can be selected again
@@ -85,7 +93,7 @@ const ParticipantsPanel: React.FC = () => {
   };
 
   // Document selection handler
-  const handleDocumentClick = (docId: number) => {
+  const handleDocumentClick = (docId: string) => {
     socketService.setView(docId, 0);
   };
 
