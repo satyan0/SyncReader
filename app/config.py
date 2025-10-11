@@ -22,7 +22,7 @@ class Config:
     CORS_ORIGINS = os.environ.get('CORS_ORIGINS', 'http://localhost:5173,http://127.0.0.1:5173,https://*.herokuapp.com').split(',')
     
     # MongoDB configuration
-    MONGO_URI = os.environ.get('MONGO_URI', 'mongodb+srv://hackergkn:karthik@hackathon.xkjyqhh.mongodb.net/syncreader?retryWrites=true&w=majority&appName=hackathon')
+    MONGO_URI = os.environ.get('MONGODB', '')
     
 class DevelopmentConfig(Config):
     """Development configuration."""
