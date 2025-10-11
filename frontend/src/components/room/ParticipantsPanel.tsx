@@ -54,26 +54,34 @@ const ParticipantsPanel: React.FC = () => {
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     console.log('File selected:', file);
+    console.log('File details:', file ? { name: file.name, size: file.size, type: file.type } : 'No file');
     console.log('Room name:', roomName);
     console.log('Current user:', currentUser);
     
-    if (file && roomName) {
-      console.log('Attempting to upload file:', file.name);
-      setIsUploading(true);
-      try {
-        const result = await socketService.uploadFile(file, roomName);
-        console.log('Upload successful:', result);
-        // The room_update event will automatically update the UI
-      } catch (error) {
-        console.error('Upload failed:', error);
-        // You could add a toast notification here
-        alert(`Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      } finally {
-        setIsUploading(false);
-      }
-    } else {
-      console.error('Missing file or room name:', { file: !!file, roomName });
+    if (!file) {
+      console.error('No file selected');
       alert('Please select a PDF file to upload');
+      return;
+    }
+    
+    if (!roomName) {
+      console.error('No room name available');
+      alert('Room not found. Please try joining the room again.');
+      return;
+    }
+    
+    console.log('Attempting to upload file:', file.name, 'to room:', roomName);
+    setIsUploading(true);
+    try {
+      const result = await socketService.uploadFile(file, roomName);
+      console.log('Upload successful:', result);
+      // The room_update event will automatically update the UI
+    } catch (error) {
+      console.error('Upload failed:', error);
+      // You could add a toast notification here
+      alert(`Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsUploading(false);
     }
     
     // Clear the input so the same file can be selected again
