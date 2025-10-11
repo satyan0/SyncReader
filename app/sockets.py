@@ -164,21 +164,37 @@ def on_upload(data):
 
 @socketio.on('set_view')
 def on_set_view(data):
-    sid = request.sid
-    user = User.get_by_sid(sid)
-    if not user:
-        return
+    try:
+        sid = request.sid
+        print(f"set_view received: {data} from {sid}")
+        user = User.get_by_sid(sid)
+        if not user:
+            print(f"No user found for SID: {sid}")
+            return {'error': 'User not found'}
 
-    # Update user's current view
-    doc_id = data.get('doc_id')
-    page = data.get('page')
-    
-    User.update_view(sid, doc_id, page)
-    
-    # Get room info and emit update
-    room = Room.find_by_id(user['room_id'])
-    if room:
-        emit('room_update', get_room_state(room['name']), room=room['name'])
+        # Update user's current view
+        doc_id = data.get('doc_id')
+        page = data.get('page')
+        
+        print(f"Updating view for user {user['username']}: doc_id={doc_id}, page={page}")
+        result = User.update_view(sid, doc_id, page)
+        print(f"Update result: {result}")
+        
+        # Get room info and emit update
+        room = Room.find_by_id(user['room_id'])
+        if room:
+            room_state = get_room_state(room['name'])
+            print(f"Emitting room_update after set_view: {room_state}")
+            emit('room_update', room_state, room=room['name'])
+            return {'success': True}
+        else:
+            print(f"Room not found for user")
+            return {'error': 'Room not found'}
+    except Exception as e:
+        print(f"Error in set_view handler: {e}")
+        import traceback
+        traceback.print_exc()
+        return {'error': str(e)}
 
 @socketio.on('add_highlight')
 def on_add_highlight(highlight_data):

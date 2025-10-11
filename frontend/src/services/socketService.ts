@@ -10,7 +10,7 @@ const RECONNECTION_DELAY = 1000;
 class SocketService {
   private socket: Socket;
   private reconnectionAttempts: number = 0;
-  private pendingDeletions: Array<{highlightId: string, documentId?: number}> = [];
+  private pendingDeletions: Array<{highlightId: string, documentId?: string}> = [];
 
   constructor() {
     this.socket = io(SOCKET_URL, {
@@ -140,7 +140,7 @@ class SocketService {
       }
     });
 
-    this.socket.on('highlight_removed', (data: { highlightId: string; documentId?: number }) => {
+    this.socket.on('highlight_removed', (data: { highlightId: string; documentId?: string }) => {
       try {
         console.log('Received highlight_removed event:', data);
         const { highlightId, documentId } = data;
@@ -205,7 +205,7 @@ class SocketService {
     });
   }
   
-  public uploadFile(file: File, roomName: string): Promise<{ success: boolean; error?: string; documentId?: number }> {
+  public uploadFile(file: File, roomName: string): Promise<{ success: boolean; error?: string; documentId?: string }> {
     console.log('uploadFile called with:', { file, roomName });
     console.log('Socket connected:', this.socket.connected);
     
@@ -274,10 +274,10 @@ class SocketService {
     return true;
   }
 
-  public setView(docId: number, page: number) {
+  public setView(docId: string | number, page: number) {
     if (!this.ensureConnection()) return;
-    if (typeof docId !== 'number' || typeof page !== 'number') {
-      console.error('Invalid document ID or page number');
+    if (!docId || typeof page !== 'number') {
+      console.error('Invalid document ID or page number', { docId, page, docIdType: typeof docId, pageType: typeof page });
       return;
     }
 
@@ -304,7 +304,7 @@ class SocketService {
     });
   }
 
-  public removeHighlight(highlightId: string, documentId?: number): Promise<void> {
+  public removeHighlight(highlightId: string, documentId?: string): Promise<void> {
     if (!this.ensureConnection()) {
       return Promise.reject(new Error('Socket not connected'));
     }
@@ -324,7 +324,7 @@ class SocketService {
   }
 
   // Fast version that doesn't wait for server response - for optimistic UI updates
-  public removeHighlightFast(highlightId: string, documentId?: number): Promise<void> {
+  public removeHighlightFast(highlightId: string, documentId?: string): Promise<void> {
     if (!this.socket.connected) {
       console.warn('Socket not connected, queueing deletion for when connection is restored');
       // Queue the deletion for when connection is restored

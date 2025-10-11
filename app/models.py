@@ -133,7 +133,12 @@ class User(BaseModel):
         """Update user's current view."""
         update_data = {}
         if doc_id is not None:
-            update_data["current_doc_id"] = ObjectId(doc_id) if doc_id else None
+            try:
+                update_data["current_doc_id"] = ObjectId(doc_id) if doc_id else None
+                print(f"Successfully converted doc_id {doc_id} to ObjectId")
+            except Exception as e:
+                print(f"Error converting doc_id {doc_id} to ObjectId: {e}")
+                update_data["current_doc_id"] = None
         if page is not None:
             update_data["current_page"] = page
         

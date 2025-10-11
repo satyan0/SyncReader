@@ -7,33 +7,33 @@ export interface Highlight {
   text: string;
   selectedText?: string;
   pageNumber: number;
-  documentId: number;
+  documentId: string;
   boundingBox: {
     x: number;
     y: number;
     width: number;
     height: number;
   };
-  userId: number;
+  userId: string;
   username: string;
   timestamp: number;
 }
 
 export interface User {
-  id: number;
+  id: string;
   username: string;
   sid: string;
-  current_doc_id: number | null;
+  current_doc_id: string | null;
   current_page: number;
   highlights: Highlight[];
 }
 
 export interface Document {
-  id: number;
+  id: string;
   name: string;
   pages: number;
-  room_id: number;
-  uploader_id: number | null;
+  room_id: string;
+  uploader_id: string | null;
 }
 
 export interface RoomState {
@@ -45,14 +45,14 @@ export interface RoomState {
 export interface AppState {
   room: RoomState | null;
   currentUser: User | null;
-  highlights: { [documentId: number]: Highlight[] };
+  highlights: { [documentId: string]: Highlight[] };
   sessionId: string | null;
   setRoomState: (state: RoomState) => void;
   setCurrentUser: (user: User) => void;
   addHighlight: (highlight: Highlight) => void;
-  removeHighlight: (documentId: number, highlightId: string) => void;
-  getHighlightsForDocument: (documentId: number) => Highlight[];
-  clearHighlights: (documentId?: number) => void;
+  removeHighlight: (documentId: string, highlightId: string) => void;
+  getHighlightsForDocument: (documentId: string) => Highlight[];
+  clearHighlights: (documentId?: string) => void;
   setSessionId: (sessionId: string) => void;
   clearSession: () => void;
 }
@@ -85,7 +85,7 @@ const useStore = create<AppState>()(
           }
         };
       }),
-      removeHighlight: (documentId: number, highlightId: string) => set((state) => {
+      removeHighlight: (documentId: string, highlightId: string) => set((state) => {
         const documentHighlights = state.highlights[documentId] || [];
         return {
           highlights: {
@@ -94,11 +94,11 @@ const useStore = create<AppState>()(
           }
         };
       }),
-      getHighlightsForDocument: (documentId: number) => {
+      getHighlightsForDocument: (documentId: string) => {
         const state = get();
         return state.highlights[documentId] || [];
       },
-      clearHighlights: (documentId?: number) => set((state) => {
+      clearHighlights: (documentId?: string) => set((state) => {
         if (documentId) {
           const newHighlights = { ...state.highlights };
           delete newHighlights[documentId];
