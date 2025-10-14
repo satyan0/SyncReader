@@ -36,12 +36,21 @@ def on_join(data):
             room_id = room['_id']
             print(f"Found existing room: {room_name} with ID: {room_id}")
 
-        # Remove any old user entries with the same SID
-        User.delete_by_sid(sid)
-
-        # Create new user
-        user_id = User.create(sid=sid, username=username, room_id=room_id)
-        print(f"Created user: {username} in room: {room_name} with ID: {user_id}")
+        # Check if user already exists with this username in this room
+        existing_user = User.get_by_username_and_room(username, room_id)
+        
+        if existing_user:
+            # Update existing user with new SID (reconnection)
+            print(f"User {username} reconnecting, updating SID from {existing_user.get('sid')} to {sid}")
+            User.reconnect_user(existing_user['_id'], sid)
+            user_id = existing_user['_id']
+        else:
+            # Remove any old user entries with the same SID
+            User.delete_by_sid(sid)
+            
+            # Create new user
+            user_id = User.create(sid=sid, username=username, room_id=room_id)
+            print(f"Created new user: {username} in room: {room_name} with ID: {user_id}")
 
         join_room(room_name)
         print(f"User '{username}' joined room: {room_name}")
@@ -62,13 +71,13 @@ def on_disconnect():
         print(f"Client disconnected: {sid}")
         user = User.get_by_sid(sid)
         if user:
-            # Get room info before deleting user
+            # Get room info before marking user as disconnected
             room = Room.find_by_id(user['room_id'])
             room_name = room['name'] if room else 'unknown'
-            print(f"User '{user['username']}' left room: {room_name}")
+            print(f"User '{user['username']}' disconnected from room: {room_name}")
             
-            # Delete user
-            User.delete_by_sid(sid)
+            # Mark user as disconnected instead of deleting immediately
+            User.mark_disconnected(sid)
             
             leave_room(room_name)
             room_state = get_room_state(room_name)

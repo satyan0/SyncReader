@@ -7,7 +7,13 @@ import socketService from '../../services/socketService';
 const DocumentsPanel: React.FC = () => {
   const documents = useStore((state) => state.room?.documents);
   const roomName = useStore((state) => state.room?.name);
-  // const currentUser = useStore((state) => state.currentUser);
+  const roomState = useStore((state) => state.room); // Subscribe to entire room state for re-renders
+
+  // Debug logging for documents
+  React.useEffect(() => {
+    console.log('DocumentsPanel re-rendered. Documents:', documents?.length || 0);
+    console.log('Documents:', documents);
+  }, [documents, roomState]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];

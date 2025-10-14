@@ -64,8 +64,14 @@ const useStore = create<AppState>()(
       currentUser: null,
       highlights: {},
       sessionId: null,
-      setRoomState: (state: RoomState) => set({ room: state }),
-      setCurrentUser: (user: User) => set({ currentUser: user }),
+      setRoomState: (state: RoomState) => {
+        console.log('Setting room state with', state.documents?.length || 0, 'documents');
+        set({ room: state });
+      },
+      setCurrentUser: (user: User) => {
+        console.log('Setting current user:', user.username);
+        set({ currentUser: user });
+      },
       addHighlight: (highlight: Highlight) => set((state) => {
         console.log('Adding highlight to store:', highlight.id, 'for document:', highlight.documentId);
         const documentHighlights = state.highlights[highlight.documentId] || [];

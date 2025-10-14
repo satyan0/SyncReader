@@ -84,10 +84,10 @@ class Room(BaseModel):
     
     @classmethod
     def get_users(cls, room_id: ObjectId) -> List[Dict]:
-        """Get all users in a room."""
+        """Get all active users in a room (not disconnected)."""
         if isinstance(room_id, str):
             room_id = ObjectId(room_id)
-        return list(User.find({"room_id": room_id}))
+        return list(User.find({"room_id": room_id, "disconnected": {"$ne": True}}))
     
     @classmethod
     def get_documents(cls, room_id: ObjectId) -> List[Dict]:
@@ -151,6 +151,35 @@ class User(BaseModel):
         return cls.update_one(
             {"sid": sid},
             {"$push": {"highlights": highlight}}
+        )
+    
+    @classmethod
+    def get_by_username_and_room(cls, username: str, room_id) -> Optional[Dict]:
+        """Get user by username and room ID."""
+        return cls.find_one({"username": username, "room_id": room_id, "disconnected": {"$ne": True}})
+    
+    @classmethod
+    def mark_disconnected(cls, sid: str):
+        """Mark user as disconnected instead of deleting."""
+        return cls.update_one(
+            {"sid": sid}, 
+            {
+                "disconnected": True,
+                "disconnected_at": datetime.utcnow()
+            }
+        )
+    
+    @classmethod
+    def reconnect_user(cls, user_id, new_sid: str):
+        """Reconnect user with new socket ID."""
+        return cls.update_one(
+            {"_id": user_id},
+            {
+                "sid": new_sid,
+                "disconnected": False,
+                "$unset": {"disconnected_at": ""},
+                "updated_at": datetime.utcnow()
+            }
         )
     
     @classmethod

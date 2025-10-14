@@ -9,8 +9,19 @@ const ParticipantsPanel: React.FC = () => {
   const documents = useStore((state) => state.room?.documents);
   const currentUser = useStore((state) => state.currentUser);
   const roomName = useStore((state) => state.room?.name);
+  const roomState = useStore((state) => state.room); // Subscribe to entire room state
   const [expandedUsers, setExpandedUsers] = useState<Set<string>>(new Set());
   const [isUploading, setIsUploading] = useState(false);
+
+  // Debug logging for documents in participants panel
+  React.useEffect(() => {
+    console.log('ParticipantsPanel re-rendered. Documents:', documents?.length || 0);
+    if (documents) {
+      documents.forEach(doc => {
+        console.log(`Document: ${doc.name} by user ${doc.uploader_id}`);
+      });
+    }
+  }, [documents, roomState]);
 
   // Function to get color based on user ID (same as in DocumentViewer)
   const getUserHighlightColor = (userId: string) => {

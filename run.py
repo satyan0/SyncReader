@@ -10,7 +10,7 @@ if __name__ == '__main__':
     # Get configuration
     config = app.config
     host = config.get('HOST', '127.0.0.1')
-    port = int(os.environ.get('PORT', config.get('PORT', 8080)))
+    port = int(os.environ.get('PORT', config.get('PORT', 5000)))
     
     print(f"Starting server on {host}:{port}")
     socketio.run(app, host=host, port=port)
