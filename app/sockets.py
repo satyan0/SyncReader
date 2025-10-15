@@ -290,3 +290,7 @@ def on_highlight(data):
     room = Room.find_by_id(user['room_id'])
     if room:
         emit('room_update', get_room_state(room['name']), room=room['name'])
+#chnages made
+    else:
+        print(f"Room not found for user")
+        return {'error': 'Room not found'}
