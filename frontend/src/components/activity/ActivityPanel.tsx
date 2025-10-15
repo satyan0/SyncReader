@@ -3,6 +3,7 @@ import React, { useState, useMemo } from 'react';
 import useStore from '../../store/useStore';
 import { Clock, FileText, User, ArrowRight } from 'lucide-react';
 import socketService from '../../services/socketService';
+import { getUserBorderColor } from '../../utils/userColors';
 
 interface ActivityItem {
   id: string;
@@ -10,7 +11,7 @@ interface ActivityItem {
   timestamp: number;
   username: string;
   documentName: string;
-  documentId: number;
+  documentId: string;
   pageNumber: number;
   text: string;
   highlight: any; // The full highlight object
@@ -24,10 +25,24 @@ const ActivityPanel: React.FC = () => {
   const activityItems = useMemo(() => {
     const items: ActivityItem[] = [];
     
-    // Collect all highlights from all documents
+    // Only process highlights for documents that exist in the current room
+    if (!room?.documents) {
+      console.log('No room or documents available');
+      return items;
+    }
+    
+    const currentRoomDocumentIds = new Set(room.documents.map(doc => doc.id));
+    console.log('Current room document IDs:', Array.from(currentRoomDocumentIds));
+    
+    // Collect highlights only from documents in the current room
     Object.entries(highlights).forEach(([documentId, docHighlights]) => {
-      const docId = parseInt(documentId);
-      const document = room?.documents?.find(doc => doc.id === docId);
+      // Only include highlights for documents that exist in the current room
+      if (!currentRoomDocumentIds.has(documentId)) {
+        console.log(`Skipping highlights for document ${documentId} - not in current room`);
+        return;
+      }
+      
+      const document = room.documents.find(doc => doc.id === documentId);
       
       docHighlights.forEach(highlight => {
         items.push({
@@ -36,7 +51,7 @@ const ActivityPanel: React.FC = () => {
           timestamp: highlight.timestamp || Date.now(),
           username: highlight.username,
           documentName: document?.name || 'Unknown Document',
-          documentId: docId,
+          documentId: documentId,
           pageNumber: highlight.pageNumber,
           text: highlight.selectedText || 'Selected text',
           highlight: highlight
@@ -44,6 +59,7 @@ const ActivityPanel: React.FC = () => {
       });
     });
     
+    console.log(`Found ${items.length} activity items for current room`);
     // Sort by timestamp (latest first)
     return items.sort((a, b) => b.timestamp - a.timestamp);
   }, [highlights, room?.documents]);
@@ -76,25 +92,7 @@ const ActivityPanel: React.FC = () => {
     return date.toLocaleDateString();
   };
 
-  const getUserHighlightColor = (userId: number) => {
-    const colors = [
-      'border-yellow-400',
-      'border-blue-400', 
-      'border-green-400',
-      'border-red-400',
-      'border-purple-400',
-      'border-pink-400',
-      'border-indigo-400',
-      'border-orange-400'
-    ];
-    
-    const hash = userId.toString().split('').reduce((a: number, b: string) => {
-      a = ((a << 5) - a) + b.charCodeAt(0);
-      return a & a;
-    }, 0);
-    
-    return colors[Math.abs(hash) % colors.length];
-  };
+
 
   return (
     <div className={`bg-white border-l border-gray-200 flex flex-col transition-all duration-300 ${
@@ -136,7 +134,7 @@ const ActivityPanel: React.FC = () => {
                 <div
                   key={item.id}
                   onClick={() => handleActivityClick(item)}
-                  className={`p-2 sm:p-3 bg-gray-50 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors border-l-4 ${getUserHighlightColor(item.highlight.userId)}`}
+                  className={`p-2 sm:p-3 bg-gray-50 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors border-l-4 ${getUserBorderColor(item.highlight.userId.toString())}`}
                 >
                   <div className="flex items-start">
                     <div className="flex-1 min-w-0">

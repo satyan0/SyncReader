@@ -55,6 +55,7 @@ export interface AppState {
   clearHighlights: (documentId?: string) => void;
   setSessionId: (sessionId: string) => void;
   clearSession: () => void;
+  clearAllHighlights: () => void;
 }
 
 const useStore = create<AppState>()(
@@ -119,6 +120,7 @@ const useStore = create<AppState>()(
         highlights: {}, 
         sessionId: null 
       }),
+      clearAllHighlights: () => set({ highlights: {} }),
     }),
     {
       name: 'courtsync-session',

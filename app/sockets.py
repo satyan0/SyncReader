@@ -36,18 +36,19 @@ def on_join(data):
             room_id = room['_id']
             print(f"Found existing room: {room_name} with ID: {room_id}")
 
-        # Check if user already exists with this username in this room
-        existing_user = User.get_by_username_and_room(username, room_id)
+        # Remove any old user entries with the same SID first
+        User.delete_by_sid(sid)
+        
+        # Check if user already exists with this username in this room (including disconnected users)
+        existing_user = User.get_by_username_and_room_including_disconnected(username, room_id)
         
         if existing_user:
             # Update existing user with new SID (reconnection)
-            print(f"User {username} reconnecting, updating SID from {existing_user.get('sid')} to {sid}")
+            print(f"User {username} reconnecting, updating SID from {existing_user.get('sid', 'None')} to {sid}")
             User.reconnect_user(existing_user['_id'], sid)
             user_id = existing_user['_id']
+            print(f"Reconnected user: {username} in room: {room_name} with existing ID: {user_id}")
         else:
-            # Remove any old user entries with the same SID
-            User.delete_by_sid(sid)
-            
             # Create new user
             user_id = User.create(sid=sid, username=username, room_id=room_id)
             print(f"Created new user: {username} in room: {room_name} with ID: {user_id}")
