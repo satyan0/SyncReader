@@ -12,8 +12,8 @@ socketio = SocketIO(
     engineio_logger=True,
     cors_allowed_origins="*",  # More permissive for development
     async_mode='threading',  # Changed from eventlet to threading
-    max_http_buffer_size=50 * 1024 * 1024,  # 50MB for file uploads
-    max_message_size=50 * 1024 * 1024  # 50MB for Socket.IO messages
+    max_http_buffer_size=100 * 1024 * 1024,  # 100MB for file uploads
+    max_message_size=100 * 1024 * 1024  # 100MB for Socket.IO messages
 )
 
 def create_app(config_name='default'):
@@ -26,6 +26,9 @@ def create_app(config_name='default'):
     # Load configuration
     app.config.from_object(config_by_name[config_name])
     app.config.from_pyfile('config.py', silent=True)
+    
+    # Set maximum file upload size to 100MB
+    app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100MB
     
     # Debug: Print MongoDB configuration
     print(f"MongoDB URI configured: {app.config.get('MONGO_URI', 'NOT SET')}")
@@ -55,8 +58,8 @@ def create_app(config_name='default'):
         ping_timeout=60000,
         ping_interval=25000,
         transports=['websocket', 'polling'],
-        max_http_buffer_size=50 * 1024 * 1024,  # 50MB for file uploads
-        max_message_size=50 * 1024 * 1024  # 50MB for Socket.IO messages
+        max_http_buffer_size=100 * 1024 * 1024,  # 100MB for file uploads
+        max_message_size=100 * 1024 * 1024  # 100MB for Socket.IO messages
     )
 
     # Create the upload folder if it doesn't exist
