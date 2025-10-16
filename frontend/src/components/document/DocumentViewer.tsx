@@ -6,6 +6,7 @@ import { Loader2, X, List, ChevronRight, ChevronDown, Search } from 'lucide-reac
 import socketService from '../../services/socketService';
 import { Highlight } from '../../store/useStore';
 import { extractTableOfContents, searchInDocument, TableOfContentsItem } from '../../utils/pdfUtils';
+import { getUserHighlightColor } from '../../utils/userColors';
 
 // Set up PDF.js worker
 pdfjs.GlobalWorkerOptions.workerSrc = import.meta.env.VITE_PDF_WORKER_SRC || '/pdf.worker.js';
@@ -344,32 +345,10 @@ const DocumentViewer: React.FC = () => {
     );
   }
 
-  // Function to get color based on user ID
-  const getUserHighlightColor = (userId: number) => {
-    const colors = [
-      'border-yellow-400',
-      'border-blue-400', 
-      'border-green-400',
-      'border-red-400',
-      'border-purple-400',
-      'border-pink-400',
-      'border-indigo-400',
-      'border-orange-400'
-    ];
-    
-    // Use a simple hash to consistently assign colors to users
-    const hash = userId.toString().split('').reduce((a: number, b: string) => {
-      a = ((a << 5) - a) + b.charCodeAt(0);
-      return a & a;
-    }, 0);
-    
-    return colors[Math.abs(hash) % colors.length];
-  };
+
 
   const renderHighlight = (highlight: Highlight, pageNumber: number) => {
     if (highlight.pageNumber !== pageNumber) return null;
-
-    const borderColor = getUserHighlightColor(highlight.userId);
 
     const handleDeleteHighlight = () => {
       console.log('Deleting highlight:', highlight.id, 'from document:', highlight.documentId);
@@ -394,17 +373,21 @@ const DocumentViewer: React.FC = () => {
       });
     };
 
+    const highlightColor = getUserHighlightColor(highlight.userId);
+
     return (
       <div
         key={highlight.id}
-        className={`absolute border-2 ${borderColor} rounded-sm cursor-pointer group z-10`}
+        className="absolute cursor-pointer group z-10"
         style={{
           left: `${highlight.boundingBox.x}px`,
           top: `${highlight.boundingBox.y}px`,
           width: `${highlight.boundingBox.width}px`,
           height: `${highlight.boundingBox.height}px`,
           pointerEvents: 'none', // Allow text selection through highlights
-          backgroundColor: 'transparent',
+          backgroundColor: highlightColor,
+          opacity: 0.4, // Semi-transparent for proper highlighting effect
+          borderRadius: '2px', // Slight rounding for smoother appearance
         }}
         title={`Highlighted by ${highlight.username}`}
       >
@@ -422,9 +405,9 @@ const DocumentViewer: React.FC = () => {
           <X className="w-3 h-3" />
         </button>
         
-        {/* Hover area for the highlight */}
+        {/* Hover area for the highlight - maintains interactivity */}
         <div 
-          className="absolute inset-0 pointer-events-auto group-hover:bg-transparent"
+          className="absolute inset-0 pointer-events-auto"
           style={{ backgroundColor: 'transparent' }}
         />
       </div>

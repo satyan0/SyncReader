@@ -16,17 +16,26 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 
   useEffect(() => {
     const initializeSession = async () => {
+      console.log('ProtectedRoute: Checking session...');
+      
       // If we already have a valid session, no need to recover
       if (currentUser && room) {
+        console.log('ProtectedRoute: Valid session found');
         setSessionRecovered(true);
         setIsInitializing(false);
         return;
       }
 
+      console.log('ProtectedRoute: Attempting session recovery...');
       // Try to recover session
       const recovered = sessionService.initializeSession();
+      console.log('ProtectedRoute: Session recovery result:', recovered);
       setSessionRecovered(recovered);
-      setIsInitializing(false);
+      
+      // Wait a bit longer for socket connection and room updates
+      setTimeout(() => {
+        setIsInitializing(false);
+      }, 1000);
     };
 
     initializeSession();

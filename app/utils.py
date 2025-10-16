@@ -19,6 +19,16 @@ def get_room_state(room_name):
     
     print(f"Found room: {room['name']} with {len(users_data)} users and {len(documents_data)} documents")
     
+    # Debug: Print all document uploader IDs and current users
+    if documents_data:
+        print("Documents in room:")
+        for doc in documents_data:
+            print(f"  - {doc['name']} uploaded by user_id: {doc.get('uploader_id')}")
+        
+        print("Current active users:")
+        for user in users_data:
+            print(f"  - {user['username']} (user_id: {user['_id']}, sid: {user['sid']})")
+    
     # Convert users to the expected format
     users = []
     for user in users_data:

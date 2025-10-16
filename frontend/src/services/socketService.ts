@@ -105,6 +105,23 @@ class SocketService {
         console.log('Setting room state:', validatedData);
         useStore.getState().setRoomState(validatedData);
 
+        // Populate highlights from all users in the room
+        console.log('Populating highlights from room state...');
+        const store = useStore.getState();
+        store.clearAllHighlights(); // Clear existing highlights first
+        
+        validatedData.users.forEach(user => {
+          if (user.highlights && Array.isArray(user.highlights)) {
+            console.log(`Adding ${user.highlights.length} highlights from user ${user.username}`);
+            user.highlights.forEach(highlight => {
+              // Ensure the highlight has the required fields
+              if (highlight.id && highlight.documentId) {
+                store.addHighlight(highlight);
+              }
+            });
+          }
+        });
+
         // Find and set the current user
         const currentUser = validatedData.users.find(u => u.sid === this.socket.id);
         if (currentUser) {
@@ -196,6 +213,11 @@ class SocketService {
 
   private emitJoinRoom(username: string, room: string) {
     console.log('Emitting join room event:', { username, room });
+    
+    // Clear all highlights from previous room
+    console.log('Clearing highlights from previous room before joining new room');
+    useStore.getState().clearAllHighlights();
+    
     this.socket.emit('join', { username, room }, (response: any) => {
       if (response?.error) {
         console.error('Error joining room:', response.error);

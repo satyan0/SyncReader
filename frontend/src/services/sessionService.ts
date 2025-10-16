@@ -26,10 +26,17 @@ class SessionService {
 
     console.log('Recovering session for user:', currentUser.username, 'in room:', room.name);
     
-    // Reconnect socket and rejoin room
+    // Reconnect socket and rejoin room with proper sequencing
     try {
+      // First ensure socket is connected
       socketService.connect();
-      socketService.joinRoom(currentUser.username, room.name);
+      
+      // Wait a bit for connection to establish, then rejoin
+      setTimeout(() => {
+        console.log('Rejoining room after session recovery...');
+        socketService.joinRoom(currentUser.username, room.name);
+      }, 500);
+      
       return true;
     } catch (error) {
       console.error('Failed to recover session:', error);

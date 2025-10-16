@@ -84,10 +84,10 @@ class Room(BaseModel):
     
     @classmethod
     def get_users(cls, room_id: ObjectId) -> List[Dict]:
-        """Get all users in a room."""
+        """Get all active users in a room (not disconnected)."""
         if isinstance(room_id, str):
             room_id = ObjectId(room_id)
-        return list(User.find({"room_id": room_id}))
+        return list(User.find({"room_id": room_id, "disconnected": {"$ne": True}}))
     
     @classmethod
     def get_documents(cls, room_id: ObjectId) -> List[Dict]:
@@ -148,15 +148,59 @@ class User(BaseModel):
     @classmethod
     def add_highlight(cls, sid: str, highlight: Dict):
         """Add a highlight to user's highlights."""
-        return cls.update_one(
+        return cls.get_collection().update_one(
             {"sid": sid},
             {"$push": {"highlights": highlight}}
         )
     
     @classmethod
+    def get_by_username_and_room(cls, username: str, room_id) -> Optional[Dict]:
+        """Get user by username and room ID (only active users)."""
+        return cls.find_one({"username": username, "room_id": room_id, "disconnected": {"$ne": True}})
+    
+    @classmethod
+    def get_by_username_and_room_including_disconnected(cls, username: str, room_id) -> Optional[Dict]:
+        """Get user by username and room ID (including disconnected users)."""
+        # First try to find an active user
+        user = cls.find_one({"username": username, "room_id": room_id, "disconnected": {"$ne": True}})
+        if user:
+            return user
+        # If no active user, find the most recent disconnected user using the collection directly
+        return cls.get_collection().find_one(
+            {"username": username, "room_id": room_id}, 
+            sort=[("disconnected_at", -1)]  # Most recently disconnected first
+        )
+    
+    @classmethod
+    def mark_disconnected(cls, sid: str):
+        """Mark user as disconnected instead of deleting."""
+        return cls.update_one(
+            {"sid": sid}, 
+            {
+                "disconnected": True,
+                "disconnected_at": datetime.utcnow()
+            }
+        )
+    
+    @classmethod
+    def reconnect_user(cls, user_id, new_sid: str):
+        """Reconnect user with new socket ID."""
+        return cls.update_one(
+            {"_id": user_id},
+            {
+                "$set": {
+                    "sid": new_sid,
+                    "disconnected": False,
+                    "updated_at": datetime.utcnow()
+                },
+                "$unset": {"disconnected_at": ""}
+            }
+        )
+    
+    @classmethod
     def remove_highlight(cls, sid: str, highlight_id: str):
         """Remove a highlight from user's highlights."""
-        return cls.update_one(
+        return cls.get_collection().update_one(
             {"sid": sid},
             {"$pull": {"highlights": {"id": highlight_id}}}
         )

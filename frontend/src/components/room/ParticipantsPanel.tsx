@@ -3,36 +3,28 @@ import React, { useState } from 'react';
 import useStore from '../../store/useStore';
 import { User, ChevronRight, FileText, Upload } from 'lucide-react';
 import socketService from '../../services/socketService';
+import { getUserBorderColor } from '../../utils/userColors';
 
 const ParticipantsPanel: React.FC = () => {
   const users = useStore((state) => state.room?.users);
   const documents = useStore((state) => state.room?.documents);
   const currentUser = useStore((state) => state.currentUser);
   const roomName = useStore((state) => state.room?.name);
+  const roomState = useStore((state) => state.room); // Subscribe to entire room state
   const [expandedUsers, setExpandedUsers] = useState<Set<string>>(new Set());
   const [isUploading, setIsUploading] = useState(false);
 
-  // Function to get color based on user ID (same as in DocumentViewer)
-  const getUserHighlightColor = (userId: string) => {
-    const colors = [
-      'border-yellow-400',
-      'border-blue-400', 
-      'border-green-400',
-      'border-red-400',
-      'border-purple-400',
-      'border-pink-400',
-      'border-indigo-400',
-      'border-orange-400'
-    ];
-    
-    // Use a simple hash to consistently assign colors to users
-    const hash = userId.toString().split('').reduce((a: number, b: string) => {
-      a = ((a << 5) - a) + b.charCodeAt(0);
-      return a & a;
-    }, 0);
-    
-    return colors[Math.abs(hash) % colors.length];
-  };
+  // Debug logging for documents in participants panel
+  React.useEffect(() => {
+    console.log('ParticipantsPanel re-rendered. Documents:', documents?.length || 0);
+    if (documents) {
+      documents.forEach(doc => {
+        console.log(`Document: ${doc.name} by user ${doc.uploader_id}`);
+      });
+    }
+  }, [documents, roomState]);
+
+
 
   // Function to get documents uploaded by a specific user
   const getDocumentsByUser = (userId: string) => {
@@ -139,7 +131,7 @@ const ParticipantsPanel: React.FC = () => {
             const userDocuments = getDocumentsByUser(user.id);
             const isExpanded = expandedUsers.has(user.id);
             const isCurrentUser = user.id === currentUser?.id;
-            const borderColor = getUserHighlightColor(user.id);
+            const borderColor = getUserBorderColor(user.id);
             
             return (
               <div key={user.id} className="group/collapsible">
